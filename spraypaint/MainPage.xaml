@@ -5,21 +5,20 @@
              x:Class="spraypaint.MainPage">
 
     <Grid Padding="10">
-        <!-- Row Definitions -->
+        <!-- Rows -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- For top menu -->
-            <RowDefinition Height="*"/>    <!-- For main content and canvas -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Column Definitions -->
+        <!-- Columns -->
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/> <!-- For left toolbar -->
-            <ColumnDefinition Width="*"/>    <!-- For image and canvas -->
-            <ColumnDefinition Width="Auto"/> <!-- For right toolbar -->
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-
-        <!-- Main Canvas Area -->
+        <!-- Main Area -->
         <Grid Grid.Row="1" Grid.Column="1" Padding="20">
             <Image x:Name="imageView"
                    Aspect="AspectFit"

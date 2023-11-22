@@ -14,23 +14,16 @@ public partial class MainPage : ContentPage
         InitializeComponent();
     }
 
-    private SKColor _currentPaintColor = SKColors.Black;
+    private SKColor _currentPaintColor = SKColors.White;
     private float _currentSize;
     private byte _currentOpacity;
     private bool _isEraserMode = false;
     private SKBitmap _bitmap;
     private SKBitmap _paintBitmap;
-    private bool _isDrawingMode = false;
     private Button _selectedColorButton = null;
 
     private async void OnOpenImageClicked(object sender, EventArgs e)
     {
-
-        var pickOptions = new PickOptions
-        {
-            PickerTitle = "Please select an image",
-            FileTypes = FilePickerFileType.Images
-        };
 
         try
         {
@@ -41,15 +34,12 @@ public partial class MainPage : ContentPage
                 {
                     _bitmap = SKBitmap.Decode(stream);
                 }
-
-                // Trigger a redraw of the canvas
                 canvasView.InvalidateSurface();
 
             }
         }
         catch (Exception ex)
         {
-            // Handle exceptions
             Console.WriteLine($"Error picking file: {ex.Message}");
         }
 
@@ -151,10 +141,8 @@ public partial class MainPage : ContentPage
         var canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.Transparent);
 
-        // Draw the original image
         if (_bitmap != null && _paintBitmap != null)
         {
-            // Maintain the aspect ratio of the original image
             float scale = Math.Min((float)e.Info.Width / _bitmap.Width, (float)e.Info.Height / _bitmap.Height);
             float x = (e.Info.Width - scale * _bitmap.Width) / 2;
             float y = (e.Info.Height - scale * _bitmap.Height) / 2;
@@ -167,7 +155,6 @@ public partial class MainPage : ContentPage
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
-        // Check if the touch point is within the bounds of the canvas
         var canvasBounds = new SKRect(0, 0, canvasView.CanvasSize.Width, canvasView.CanvasSize.Height);
         if (canvasBounds.Contains(e.Location))
         {
@@ -175,7 +162,7 @@ public partial class MainPage : ContentPage
             {
                 if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
                 {
-                    // Adjust the touch point to the scale and position of the image
+                    // Adjust touch points to image
                     float canvasScale = Math.Min(canvasView.CanvasSize.Width / _bitmap.Width, canvasView.CanvasSize.Height / _bitmap.Height);
                     float adjustedX = (e.Location.X - (canvasView.CanvasSize.Width - _bitmap.Width * canvasScale) / 2) / canvasScale;
                     float adjustedY = (e.Location.Y - (canvasView.CanvasSize.Height - _bitmap.Height * canvasScale) / 2) / canvasScale;
@@ -213,16 +200,18 @@ public partial class MainPage : ContentPage
 
             if (_isEraserMode)
             {
+                // Paint transparent over top to simulate erasing
                 paint.Color = SKColors.Transparent;
-                paint.BlendMode = SKBlendMode.Clear; // Clear mode for eraser
+                paint.BlendMode = SKBlendMode.Clear;
                 canvas.DrawCircle(point, _currentSize, paint);
 
             }
             else
             {
                 paint.Color = _currentPaintColor.WithAlpha(_currentOpacity);
+                // Spray paint effect with random dots
                 Random rand = new Random();
-                int dots = 100; // Number of dots to create the spray effect
+                int dots = 100;
 
                 for (int i = 0; i < dots; i++)
                 {
@@ -238,14 +227,12 @@ public partial class MainPage : ContentPage
     private void SprayPaint_Clicked(object sender, EventArgs e)
     {
         _isEraserMode = false;
-        _isDrawingMode = true;
         UpdateButtonAppearance(sender as Button);
     }
 
     private void Eraser_Clicked(object sender, EventArgs e)
     {
         _isEraserMode = true;
-        _isDrawingMode = false;
         UpdateButtonAppearance(sender as Button);
     }
 
@@ -284,7 +271,7 @@ public partial class MainPage : ContentPage
         // Highlight the active button
         if (activeButton != null)
         {
-            activeButton.BackgroundColor = Colors.LightGray; // Or any other color to indicate selection
+            activeButton.BackgroundColor = Colors.LightGray;
             activeButton.BorderColor = Colors.DarkRed;
             activeButton.BorderWidth = 5;
         }
@@ -302,8 +289,8 @@ public partial class MainPage : ContentPage
         // Highlight the newly selected button
         if (selectedButton != null)
         {
-            selectedButton.BorderColor = Colors.DarkRed; // Or any color to indicate selection
-            selectedButton.BorderWidth = 5; // Adjust as needed
+            selectedButton.BorderColor = Colors.DarkRed;
+            selectedButton.BorderWidth = 5;
         }
 
         // Update the currently selected button
