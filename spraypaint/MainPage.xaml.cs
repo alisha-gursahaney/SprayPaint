@@ -175,7 +175,6 @@ public partial class MainPage : ContentPage
 
             if (_isEraserMode)
             {
-                // Eraser functionality
                 paint.Color = SKColors.Transparent;
                 paint.BlendMode = SKBlendMode.Clear; // Clear mode for eraser
                 canvas.DrawCircle(point, _currentSize, paint);
@@ -183,8 +182,6 @@ public partial class MainPage : ContentPage
             }
             else
             {
-                // Normal spray paint functionality
-                // _currentOpacity = (byte)(((int)_currentOpacity / 100) * 255);
                 paint.Color = _currentPaintColor.WithAlpha(_currentOpacity);
                 Random rand = new Random();
                 int dots = 100; // Number of dots to create the spray effect
@@ -233,7 +230,7 @@ public partial class MainPage : ContentPage
 
     private void OpacitySlider_ValueChanged(object sender, ValueChangedEventArgs e)
     {
-        _currentOpacity = (byte)e.NewValue;
+        _currentOpacity = (byte)(e.NewValue *255 /100);
     }
 
     private void UpdateButtonAppearance(Button activeButton)
