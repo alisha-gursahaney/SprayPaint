@@ -5,6 +5,7 @@ using Microsoft.Maui.Graphics;
 
 namespace spraypaint;
 
+
 public partial class MainPage : ContentPage
 {
 
@@ -13,12 +14,20 @@ public partial class MainPage : ContentPage
         InitializeComponent();
     }
 
+    private SKColor _currentPaintColor = SKColors.Black;
+    private float _currentSize;
+    private byte _currentOpacity;
+    private bool _isEraserMode = false;
+    private SKBitmap _bitmap;
+    private bool _isDrawingMode = false;
+    private Button _selectedColorButton = null;
+
     private async void OnOpenImageClicked(object sender, EventArgs e)
     {
         var pickOptions = new PickOptions
         {
             PickerTitle = "Please select an image",
-            FileTypes = FilePickerFileType.Images // Generic image file types
+            FileTypes = FilePickerFileType.Images
         };
 
         try
@@ -45,26 +54,37 @@ public partial class MainPage : ContentPage
 
     private async void OnSaveAsClicked(object sender, EventArgs e)
     {
-        if (imageView.Source is FileImageSource fileImageSource)
+        try
         {
-            string sourcePath = fileImageSource.File;
-            string destinationPath = System.IO.Path.Combine(Microsoft.Maui.Storage.FileSystem.Current.AppDataDirectory, "SavedImage.jpg");
+            string fileName = await DisplayPromptAsync("Save As", "Enter file name:");
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileName + ".png");
 
-            try
-            {
-                File.Copy(sourcePath, destinationPath, overwrite: true);
-                await DisplayAlert("Success", $"Image saved to: {destinationPath}", "OK");
-            }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error", "Failed to save image: " + ex.Message, "OK");
+                using (var combinedBitmap = new SKBitmap(_bitmap.Width, _bitmap.Height))
+                {
+                    using (var canvas = new SKCanvas(combinedBitmap))
+                    {
+                        canvas.DrawBitmap(_bitmap, 0, 0);
+
+                    }
+
+                    using (var fileStream = File.OpenWrite(filePath))
+                    {
+                        combinedBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+                    }
+                }
+
+                await DisplayAlert("Success", "Image saved successfully to " + filePath, "OK");
             }
         }
-        else
+        catch (Exception ex)
         {
-            await DisplayAlert("Error", "No image to save.", "OK");
+            await DisplayAlert("Error", "Failed to save image: " + ex.Message, "OK");
         }
     }
+
+
 
     protected override void OnSizeAllocated(double width, double height)
     {
@@ -86,15 +106,6 @@ public partial class MainPage : ContentPage
         canvasView.WidthRequest = canvasWidth;
         canvasView.HeightRequest = canvasHeight;
     }
-
-
-    private SKColor _currentPaintColor = SKColors.Black;
-    private float _currentSize = 10; // Example size value
-    private byte _currentOpacity = 25;
-    private bool _isEraserMode = false;
-    private SKBitmap _bitmap;
-    private bool _isDrawingMode = false;
-    private Button _selectedColorButton = null;
 
 
     private void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
