@@ -38,7 +38,8 @@
         <!-- Right Toolbar -->
         <StackLayout Grid.Row="1" Grid.Column="2" Orientation="Vertical" Spacing="10">
             <Button x:Name="OpenImageBtn" Text="Choose Image" Clicked="OnOpenImageClicked"/>
-            <Button x:Name="SaveAsBtn" Text="Save As" Clicked="OnSaveAsClicked"/>
+            <Button x:Name="SaveAsBtn" Text="Save As New Image" Clicked="OnSaveAsClicked"/>
+            <Button x:Name="SavePaintOnlyBtn" Text="Save Paint Only" Clicked="OnSavePaintOnlyClicked"/>
             <Button x:Name="PaintButton" Text="Paint" Clicked="SprayPaint_Clicked"/>
             <Button x:Name="EraserButton" Text="Eraser" Clicked="Eraser_Clicked"/>
             <StackLayout Spacing="0">

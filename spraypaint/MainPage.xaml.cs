@@ -25,6 +25,7 @@ public partial class MainPage : ContentPage
 
     private async void OnOpenImageClicked(object sender, EventArgs e)
     {
+
         var pickOptions = new PickOptions
         {
             PickerTitle = "Please select an image",
@@ -91,6 +92,37 @@ public partial class MainPage : ContentPage
     }
 
 
+    private async void OnSavePaintOnlyClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            string fileName = await DisplayPromptAsync("Save Paint", "Enter file name for the paint layer:");
+            if (!string.IsNullOrWhiteSpace(fileName))
+            {
+                string filePath = Path.Combine(FileSystem.AppDataDirectory, fileName + "_paint.png");
+
+                if (_paintBitmap != null)
+                {
+                    using (var fileStream = File.OpenWrite(filePath))
+                    {
+                        _paintBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
+                    }
+
+                    await DisplayAlert("Success", "Paint layer saved successfully to " + filePath, "OK");
+                }
+                else
+                {
+                    await DisplayAlert("Info", "There is no paint to save.", "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", "Failed to save paint layer: " + ex.Message, "OK");
+        }
+    }
+
+
 
     protected override void OnSizeAllocated(double width, double height)
     {
@@ -135,25 +167,31 @@ public partial class MainPage : ContentPage
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
-        if (_paintBitmap != null)
+        // Check if the touch point is within the bounds of the canvas
+        var canvasBounds = new SKRect(0, 0, canvasView.CanvasSize.Width, canvasView.CanvasSize.Height);
+        if (canvasBounds.Contains(e.Location))
         {
-            if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
+            if (_paintBitmap != null)
             {
-                // Adjust the touch point to the scale and position of the image
-                float canvasScale = Math.Min(canvasView.CanvasSize.Width / _bitmap.Width, canvasView.CanvasSize.Height / _bitmap.Height);
-                float adjustedX = (e.Location.X - (canvasView.CanvasSize.Width - _bitmap.Width * canvasScale) / 2) / canvasScale;
-                float adjustedY = (e.Location.Y - (canvasView.CanvasSize.Height - _bitmap.Height * canvasScale) / 2) / canvasScale;
+                if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
+                {
+                    // Adjust the touch point to the scale and position of the image
+                    float canvasScale = Math.Min(canvasView.CanvasSize.Width / _bitmap.Width, canvasView.CanvasSize.Height / _bitmap.Height);
+                    float adjustedX = (e.Location.X - (canvasView.CanvasSize.Width - _bitmap.Width * canvasScale) / 2) / canvasScale;
+                    float adjustedY = (e.Location.Y - (canvasView.CanvasSize.Height - _bitmap.Height * canvasScale) / 2) / canvasScale;
 
-                DrawOnCanvas(new SKPoint(adjustedX, adjustedY));
-                e.Handled = true;
-            }
+                    DrawOnCanvas(new SKPoint(adjustedX, adjustedY));
+                    e.Handled = true;
+                }
 
-            if (e.Handled)
-            {
-                ((SKCanvasView)sender).InvalidateSurface();
+                if (e.Handled)
+                {
+                    ((SKCanvasView)sender).InvalidateSurface();
+                }
             }
         }
     }
+
 
 
     private void DrawOnCanvas(SKPoint point)
@@ -197,8 +235,6 @@ public partial class MainPage : ContentPage
     }
 
 
-
-
     private void SprayPaint_Clicked(object sender, EventArgs e)
     {
         _isEraserMode = false;
@@ -237,13 +273,20 @@ public partial class MainPage : ContentPage
     private void UpdateButtonAppearance(Button activeButton)
     {
         // Reset the appearance of all buttons
-        PaintButton.BackgroundColor = Colors.Transparent;
-        EraserButton.BackgroundColor = Colors.Transparent;
+        PaintButton.BackgroundColor = Colors.White;
+        PaintButton.BorderColor = Colors.Transparent;
+        PaintButton.BorderWidth = 0;
+
+        EraserButton.BackgroundColor = Colors.White;
+        EraserButton.BorderColor = Colors.Transparent;
+        EraserButton.BorderWidth = 0;
 
         // Highlight the active button
         if (activeButton != null)
         {
             activeButton.BackgroundColor = Colors.LightGray; // Or any other color to indicate selection
+            activeButton.BorderColor = Colors.DarkRed;
+            activeButton.BorderWidth = 5;
         }
     }
 
@@ -252,19 +295,20 @@ public partial class MainPage : ContentPage
         // Reset the appearance of previously selected button
         if (_selectedColorButton != null)
         {
-            _selectedColorButton.BorderColor = Colors.Transparent;
-            _selectedColorButton.BorderWidth = 0;
+            _selectedColorButton.BorderColor = Colors.DarkGray;
+            _selectedColorButton.BorderWidth = 1;
         }
 
         // Highlight the newly selected button
         if (selectedButton != null)
         {
-            selectedButton.BorderColor = Colors.Gray; // Or any color to indicate selection
-            selectedButton.BorderWidth = 4; // Adjust as needed
+            selectedButton.BorderColor = Colors.DarkRed; // Or any color to indicate selection
+            selectedButton.BorderWidth = 5; // Adjust as needed
         }
 
         // Update the currently selected button
         _selectedColorButton = selectedButton;
     }
+
 
 }
