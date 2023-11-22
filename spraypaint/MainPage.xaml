@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             x:Class="spraypaint.MainPage">
+
+    <Grid>
+        <!-- Row Definitions -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- For top menu -->
+            <RowDefinition Height="*"/>    <!-- For main content and canvas -->
+        </Grid.RowDefinitions>
+
+        <!-- Column Definitions -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/> <!-- For left toolbar -->
+            <ColumnDefinition Width="*"/>    <!-- For image and canvas -->
+            <ColumnDefinition Width="Auto"/> <!-- For right toolbar -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Top Menu -->
+        <StackLayout Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
+            <Button x:Name="OpenImageBtn"
+                    Text="Choose Image"
+                    Clicked="OnOpenImageClicked"
+                    HorizontalOptions="Center" />
+            <Button x:Name="SaveAsBtn"
+                    Text="Save As"
+                    Clicked="OnSaveAsClicked"
+                    HorizontalOptions="Center" />
+        </StackLayout>
+
+        <!-- Main Canvas Area -->
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Image x:Name="imageView"
+                   Aspect="AspectFit"
+                   SemanticProperties.Description="Uploaded Image"
+                   VerticalOptions="FillAndExpand"
+                   HorizontalOptions="Fill"/>
+
+            <skia:SKCanvasView x:Name="canvasView"
+                               PaintSurface="OnPaintSurface"
+                               EnableTouchEvents="True"
+                               Touch="OnCanvasTouch"
+                               VerticalOptions="FillAndExpand"
+                               HorizontalOptions="Fill"/>
+        </Grid>
+
+        <!-- Right Toolbar -->
+        <StackLayout Grid.Row="1" Grid.Column="2" Orientation="Vertical">
+            <Button x:Name="PaintButton" Text="Paint" Clicked="SprayPaint_Clicked"/>
+            <Button x:Name="EraserButton" Text="Eraser" Clicked="Eraser_Clicked"/>
+            <StackLayout Orientation="Horizontal">
+                <Button BackgroundColor="Red" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Orange" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Yellow" Clicked="ColorButton_Clicked"/>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Button BackgroundColor="Green" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Blue" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Purple" Clicked="ColorButton_Clicked"/>
+            </StackLayout>
+            <StackLayout Orientation="Horizontal">
+                <Button BackgroundColor="White" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Brown" Clicked="ColorButton_Clicked"/>
+                <Button BackgroundColor="Black" Clicked="ColorButton_Clicked"/>
+            </StackLayout>
+            <Slider x:Name="sizeSlider" Minimum="1" Maximum="100" ValueChanged="SizeSlider_ValueChanged"/>
+            <Label x:Name="sizeValue"
+                   Text="{Binding Source={x:Reference sizeSlider}, Path=Value, StringFormat='Size: {0:F0}'}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="End"/>
+            <Slider x:Name="opacitySlider" Minimum="1" Maximum="100" ValueChanged="OpacitySlider_ValueChanged"/>
+            <Label x:Name="opacityValue"
+                   Text="{Binding Source={x:Reference opacitySlider}, Path=Value, StringFormat='Opacity: {0:F0}'}"
+                   HorizontalOptions="Center"
+                   VerticalOptions="End"/>
+        </StackLayout>
+    </Grid>
+</ContentPage>
