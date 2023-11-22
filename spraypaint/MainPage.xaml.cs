@@ -19,6 +19,7 @@ public partial class MainPage : ContentPage
     private byte _currentOpacity;
     private bool _isEraserMode = false;
     private SKBitmap _bitmap;
+    private SKBitmap _paintBitmap;
     private bool _isDrawingMode = false;
     private Button _selectedColorButton = null;
 
@@ -49,6 +50,11 @@ public partial class MainPage : ContentPage
         {
             // Handle exceptions
             Console.WriteLine($"Error picking file: {ex.Message}");
+        }
+
+        if (_bitmap != null)
+        {
+            _paintBitmap = new SKBitmap(_bitmap.Width, _bitmap.Height);
         }
     }
 
@@ -113,36 +119,32 @@ public partial class MainPage : ContentPage
         var canvas = e.Surface.Canvas;
         canvas.Clear(SKColors.Transparent);
 
-        if (_bitmap != null)
+        // Draw the original image
+        if (_bitmap != null && _paintBitmap != null)
         {
-            // Calculate the aspect ratio and scale to fit the canvas
+            // Maintain the aspect ratio of the original image
             float scale = Math.Min((float)e.Info.Width / _bitmap.Width, (float)e.Info.Height / _bitmap.Height);
             float x = (e.Info.Width - scale * _bitmap.Width) / 2;
             float y = (e.Info.Height - scale * _bitmap.Height) / 2;
-            SKRect destRect = new SKRect(x, y, x + scale * _bitmap.Width, y + scale * _bitmap.Height);
-
-            // Draw the bitmap (loaded image) onto the canvas
-            canvas.DrawBitmap(_bitmap, destRect);
+            canvas.DrawBitmap(_bitmap, new SKRect(x, y, x + scale * _bitmap.Width, y + scale * _bitmap.Height));
+            canvas.DrawBitmap(_paintBitmap, new SKRect(x, y, x + scale * _bitmap.Width, y + scale * _bitmap.Height));
         }
+
     }
+
 
     private void OnCanvasTouch(object sender, SKTouchEventArgs e)
     {
-        if (_isDrawingMode && _bitmap != null)
+        if (_paintBitmap != null)
         {
             if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
             {
-                // Calculate the scale and position of the image on the canvas
+                // Adjust the touch point to the scale and position of the image
                 float canvasScale = Math.Min(canvasView.CanvasSize.Width / _bitmap.Width, canvasView.CanvasSize.Height / _bitmap.Height);
-                float canvasOffsetX = (canvasView.CanvasSize.Width - (_bitmap.Width * canvasScale)) / 2;
-                float canvasOffsetY = (canvasView.CanvasSize.Height - (_bitmap.Height * canvasScale)) / 2;
+                float adjustedX = (e.Location.X - (canvasView.CanvasSize.Width - _bitmap.Width * canvasScale) / 2) / canvasScale;
+                float adjustedY = (e.Location.Y - (canvasView.CanvasSize.Height - _bitmap.Height * canvasScale) / 2) / canvasScale;
 
-                // Adjust the touch point to the bitmap's scale
-                float adjustedX = (e.Location.X - canvasOffsetX) / canvasScale;
-                float adjustedY = (e.Location.Y - canvasOffsetY) / canvasScale;
-                SKPoint adjustedPoint = new SKPoint(adjustedX, adjustedY);
-
-                DrawOnCanvas(adjustedPoint);
+                DrawOnCanvas(new SKPoint(adjustedX, adjustedY));
                 e.Handled = true;
             }
 
@@ -156,29 +158,48 @@ public partial class MainPage : ContentPage
 
     private void DrawOnCanvas(SKPoint point)
     {
-        if (_bitmap == null) return;
-
-        using (var canvas = new SKCanvas(_bitmap))
+        // Ensure paint bitmap is initialized
+        if (_paintBitmap == null)
         {
-            var paint = new SKPaint
+            _paintBitmap = new SKBitmap(_bitmap.Width, _bitmap.Height);
+        }
+
+        using (var canvas = new SKCanvas(_paintBitmap))
+        {
+            SKPaint paint = new SKPaint
             {
-                Color = _isEraserMode ? SKColors.Transparent : _currentPaintColor.WithAlpha(_currentOpacity),
                 IsAntialias = true,
-                Style = SKPaintStyle.Fill
+                Style = SKPaintStyle.Fill,
+                StrokeWidth = _currentSize
             };
 
-            Random rand = new Random();
-            int dots = 100; // Number of dots to create the spray effect
-
-            for (int i = 0; i < dots; i++)
+            if (_isEraserMode)
             {
-                // Randomly distribute dots around the point to create a spray effect
-                float x = point.X + (float)(rand.NextDouble() - 0.5) * _currentSize * 2;
-                float y = point.Y + (float)(rand.NextDouble() - 0.5) * _currentSize * 2;
-                canvas.DrawCircle(x, y, 2, paint); // Draw small dots
+                // Eraser functionality
+                paint.Color = SKColors.Transparent;
+                paint.BlendMode = SKBlendMode.Clear; // Clear mode for eraser
+                canvas.DrawCircle(point, _currentSize, paint);
+
+            }
+            else
+            {
+                // Normal spray paint functionality
+                // _currentOpacity = (byte)(((int)_currentOpacity / 100) * 255);
+                paint.Color = _currentPaintColor.WithAlpha(_currentOpacity);
+                Random rand = new Random();
+                int dots = 100; // Number of dots to create the spray effect
+
+                for (int i = 0; i < dots; i++)
+                {
+                    float x = point.X + (float)(rand.NextDouble() - 0.5) * _currentSize * 2;
+                    float y = point.Y + (float)(rand.NextDouble() - 0.5) * _currentSize * 2;
+                    canvas.DrawCircle(x, y, 2, paint);
+                }
             }
         }
     }
+
+
 
 
     private void SprayPaint_Clicked(object sender, EventArgs e)
