@@ -62,10 +62,17 @@ public partial class MainPage : ContentPage
                 {
                     using (var canvas = new SKCanvas(combinedBitmap))
                     {
+                        // Draw the original image
                         canvas.DrawBitmap(_bitmap, 0, 0);
 
+                        // Draw the paint layer on top of it
+                        if (_paintBitmap != null)
+                        {
+                            canvas.DrawBitmap(_paintBitmap, 0, 0);
+                        }
                     }
 
+                    // Save the combined image
                     using (var fileStream = File.OpenWrite(filePath))
                     {
                         combinedBitmap.Encode(fileStream, SKEncodedImageFormat.Png, 100);
@@ -80,6 +87,7 @@ public partial class MainPage : ContentPage
             await DisplayAlert("Error", "Failed to save image: " + ex.Message, "OK");
         }
     }
+
 
 
     private async void OnSavePaintOnlyClicked(object sender, EventArgs e)
